@@ -26,7 +26,7 @@
                 <td><%=dataUser[i].email%></td>
                 <td>
                   <a href="/edit-crud?id=<%=dataUser[i].id%>" type="button">Edit</a>
-                  <button type="button">Delete</button>
+                  <a href="/delete-crud?id=<%=dataUser[i].id%>" type="button">Delete</a>
                 </td>
             </tr>
         <%}%>
