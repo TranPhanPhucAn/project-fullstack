@@ -13,7 +13,7 @@ let handleUserLogin = (email, password) => {
           // attributes: {
           //   include: ["email", "roleId"],
           // },
-          attributes: ["email", "roleId", "password"],
+          attributes: ["email", "roleId", "password", "firstName", "lastName"],
         });
         if (user) {
           let check = await bcrypt.compareSync(password, user.password);
@@ -110,9 +110,10 @@ let createNewUser = (data) => {
           firstName: data.firstName,
           lastName: data.lastName,
           address: data.address,
-          phoneNumber: data.phonenumber,
-          gender: data.gender === "1" ? true : false,
+          phoneNumber: data.phoneNumber,
+          gender: data.gender,
           roleId: data.roleId,
+          positionId: data.positionId,
         });
         resolve({
           errCode: 0,
