@@ -1,3 +1,4 @@
+import { json } from "body-parser";
 import db from "../models/index";
 import bcrypt from "bcryptjs";
 var salt = bcrypt.genSaltSync(10);
@@ -103,6 +104,7 @@ let createNewUser = (data) => {
           errMessage: "Your email is already used, try other email",
         });
       } else {
+        console.log("avatar", json.toString(data.avatar));
         let hashPasswordFromBcrypt = await hashUserPassword(data.password);
         await db.User.create({
           email: data.email,
@@ -114,6 +116,7 @@ let createNewUser = (data) => {
           gender: data.gender,
           roleId: data.roleId,
           positionId: data.positionId,
+          image: data.avatar,
         });
         resolve({
           errCode: 0,
@@ -156,7 +159,7 @@ let deleteUser = (userId) => {
 let updateUserData = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!data.id) {
+      if (!data.id || !data.roleId || !data.positionId || !data.gender) {
         resolve({
           errCode: 2,
           errMessage: "Missing required parameter",
@@ -167,6 +170,13 @@ let updateUserData = (data) => {
         user.firstName = data.firstName;
         user.lastName = data.lastName;
         user.address = data.address;
+        user.roleId = data.roleId;
+        user.positionId = data.positionId;
+        user.gender = data.gender;
+        user.phoneNumber = data.phoneNumber;
+        if (data.avatar) {
+          user.image = data.avatar;
+        }
         await user.save();
         resolve({
           errCode: 0,
