@@ -60,19 +60,54 @@ let saveDetailInforDoctor = (inputData) => {
       if (
         !inputData.doctorId ||
         !inputData.contentHTML ||
-        !inputData.contentMarkdown
+        !inputData.contentMarkdown ||
+        !inputData.selectedPrice ||
+        !inputData.selectedPayment ||
+        !inputData.selectedProvince ||
+        !inputData.nameClinic ||
+        !inputData.addressClinic ||
+        !inputData.note
       ) {
         resolve({
           errCode: 1,
           errMessage: "Missing parameter",
         });
       } else {
+        //upsert to Markdown
         await db.Markdown.create({
           contentHTML: inputData.contentHTML,
           contentMarkdown: inputData.contentMarkdown,
           description: inputData.description,
           doctorId: inputData.doctorId,
         });
+        //upsert to Doctor_Infor table
+        let doctorInfor = await db.Doctor_Infor.findOne({
+          where: { doctorId: inputData.doctorId },
+          raw: false,
+        });
+        if (doctorInfor) {
+          //update
+          doctorInfor.doctorId = inputData.doctorId;
+          doctorInfor.priceId = inputData.selectedPrice;
+          doctorInfor.provinceId = inputData.selectedProvince;
+          doctorInfor.paymentId = inputData.selectedPayment;
+          doctorInfor.addressClinic = inputData.addressClinic;
+          doctorInfor.nameClinic = inputData.nameClinic;
+          doctorInfor.note = inputData.note;
+          await doctorInfor.save();
+        } else {
+          //creater
+          console.log("alo");
+          await db.Doctor_Infor.create({
+            doctorId: data.doctorId,
+            priceId: inputData.selectedPrice,
+            provinceId: inputData.selectedProvince,
+            paymentId: inputData.selectedPayment,
+            addressClinic: inputData.addressClinic,
+            nameClinic: inputData.nameClinic,
+            note: inputData.note,
+          });
+        }
         resolve({
           errCode: 0,
           errMessage: "Save infor doctor success",
@@ -108,6 +143,29 @@ let getDetailDoctorById = (inputId) => {
               as: "positionData",
               attributes: ["valueEn", "valueVi"],
             },
+            {
+              model: db.Doctor_Infor,
+              attributes: {
+                exclude: ["id", "doctorId"],
+              },
+              include: [
+                {
+                  model: db.Allcode,
+                  as: "priceTypeData",
+                  attributes: ["valueEn", "valueVi"],
+                },
+                {
+                  model: db.Allcode,
+                  as: "provinceTypeData",
+                  attributes: ["valueEn", "valueVi"],
+                },
+                {
+                  model: db.Allcode,
+                  as: "paymentTypeData",
+                  attributes: ["valueEn", "valueVi"],
+                },
+              ],
+            },
           ],
           raw: false,
           nest: true,
@@ -138,10 +196,12 @@ let updateDetailDoctorById = (data) => {
           errMessage: "Missing parameter",
         });
       } else {
+        console.log("start");
         let doctor = await db.Markdown.findOne({
           where: { doctorId: data.id },
           raw: false,
         });
+        console.log("between");
         if (doctor) {
           doctor.contentHTML = data.contentHTML;
           doctor.contentMarkdown = data.contentMarkdown;
@@ -155,6 +215,36 @@ let updateDetailDoctorById = (data) => {
           resolve({
             errCode: 3,
             errMessage: "Doctor not found!",
+          });
+        }
+        //upsert to Doctor_Infor table
+        let doctorInfor = await db.Doctor_Infor.findOne({
+          where: { doctorId: data.doctorId },
+          raw: false,
+        });
+        // console.log("abc: ", data);
+
+        if (doctorInfor) {
+          //update
+          doctorInfor.doctorId = data.doctorId;
+          doctorInfor.priceId = data.selectedPrice;
+          doctorInfor.provinceId = data.selectedProvince;
+          doctorInfor.paymentId = data.selectedPayment;
+          doctorInfor.addressClinic = data.addressClinic;
+          doctorInfor.nameClinic = data.nameClinic;
+          doctorInfor.note = data.note;
+          await doctorInfor.save();
+        } else {
+          //create
+          console.log("hello");
+          await db.Doctor_Infor.create({
+            doctorId: data.doctorId,
+            priceId: data.selectedPrice,
+            provinceId: data.selectedProvince,
+            paymentId: data.selectedPayment,
+            addressClinic: data.addressClinic,
+            nameClinic: data.nameClinic,
+            note: data.note,
           });
         }
       }
@@ -248,6 +338,49 @@ let getScheduleByDate = (doctorId, date) => {
     }
   });
 };
+let getExtraInforDoctorById = (doctorId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!doctorId) {
+        resolve({
+          errCode: 1,
+          errMessage: "Missing parameter",
+        });
+      } else {
+        let infor = await db.Doctor_Infor.findOne({
+          where: { doctorId: doctorId },
+          attributes: { exclude: ["id", "doctorId"] },
+          include: [
+            {
+              model: db.Allcode,
+              as: "priceTypeData",
+              attributes: ["valueVi", "valueEn"],
+            },
+            {
+              model: db.Allcode,
+              as: "provinceTypeData",
+              attributes: ["valueVi", "valueEn"],
+            },
+            {
+              model: db.Allcode,
+              as: "paymentTypeData",
+              attributes: ["valueVi", "valueEn"],
+            },
+          ],
+          raw: false,
+          nest: true,
+        });
+        if (!infor) infor = {};
+        resolve({
+          errCode: 0,
+          data: infor,
+        });
+      }
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
 module.exports = {
   getTopDoctorHome,
   getAllDoctors,
@@ -256,4 +389,5 @@ module.exports = {
   updateDetailDoctorById,
   bulkCreateSchedule,
   getScheduleByDate,
+  getExtraInforDoctorById,
 };
