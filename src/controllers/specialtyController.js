@@ -1,7 +1,7 @@
-import patientService from "../services/patientService";
-let postBookAppointment = async (req, res) => {
+import specialtyService from "../services/specialtyService";
+let createSpecialty = async (req, res) => {
   try {
-    let data = await patientService.postBookAppointment(req.body);
+    let data = await specialtyService.createSpecialty(req.body);
     return res.status(200).json(data);
   } catch (e) {
     console.log(e);
@@ -11,20 +11,18 @@ let postBookAppointment = async (req, res) => {
     });
   }
 };
-let postVerifyBookAppointment = async (req, res) => {
+let getAllSpecialty = async (req, res) => {
   try {
-    let data = await patientService.postVerifyBookAppointment(req.body);
+    let data = await specialtyService.getAllSpecialty();
     return res.status(200).json(data);
   } catch (e) {
-    console.log(e);
     return res.status(200).json({
       errCode: -1,
       message: "Error from server",
     });
   }
 };
-
 module.exports = {
-  postBookAppointment,
-  postVerifyBookAppointment,
+  createSpecialty,
+  getAllSpecialty,
 };
