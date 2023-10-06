@@ -46,9 +46,37 @@ let getAllClinic = () => {
     }
   });
 };
-let getDetailClinicById = () => {
+let getDetailClinicById = (inputId) => {
   return new Promise(async (resolve, reject) => {
     try {
+      if (!inputId) {
+        resolve({
+          errCode: 1,
+          errMessage: "Missing required parameter",
+        });
+      } else {
+        let data = await db.Clinic.findOne({
+          where: { id: inputId },
+          attributes: [
+            "name",
+            "address",
+            "descriptionHTML",
+            "descriptionMarkdown",
+          ],
+        });
+        if (data) {
+          let doctorClinic = [];
+          doctorClinic = await db.Doctor_Infor.findAll({
+            where: { clinicId: inputId },
+            attributes: ["doctorId", "provinceId"],
+          });
+          data.doctorClinic = doctorClinic;
+        } else data = {};
+        resolve({
+          errCode: 0,
+          data: data,
+        });
+      }
     } catch (e) {
       reject(e);
     }
