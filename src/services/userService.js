@@ -14,7 +14,14 @@ let handleUserLogin = (email, password) => {
           // attributes: {
           //   include: ["email", "roleId"],
           // },
-          attributes: ["email", "roleId", "password", "firstName", "lastName"],
+          attributes: [
+            "id",
+            "email",
+            "roleId",
+            "password",
+            "firstName",
+            "lastName",
+          ],
         });
         if (user) {
           let check = await bcrypt.compareSync(password, user.password);
